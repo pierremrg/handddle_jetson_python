@@ -1,0 +1,103 @@
+import threading
+import os
+from os import path as osp
+import re
+import json
+import time
+import io
+import glob
+
+from messages.tlv_message import TLVMessage
+from messages.tlv_data import TLVData
+
+################################
+# Read received commands files #
+################################
+
+class SendCommandsThread(threading.Thread):
+	def __init__(self, se, commands_dir, uids, debug):
+		threading.Thread.__init__(self)
+		self.se = se
+		self.commands_dir = commands_dir
+		self.uids = uids
+		self.debug = debug
+
+	def run(self):
+
+		print('Started SendCommandsThread')
+
+		try:
+
+			while True:  # Infinite loop
+
+				# Messages ready to be sent to all STM32
+				messages_to_send = []
+
+				commands_filenames = [f for f in os.listdir(self.commands_dir) if osp.isfile(osp.join(self.commands_dir, f))]
+				commands_filenames = sorted(commands_filenames, key=lambda filename: int(filename.split('.')[0]))
+
+				for commands_filename in commands_filenames:
+
+					with open(osp.join(self.commands_dir, commands_filename), 'r') as commands_file:
+
+						try:
+							commands_data = commands_file.read()
+							commands_data = re.sub('\s+', '', commands_data)
+							commands_data = json.loads(commands_data)
+
+							# Here (= no error), we have a JSON document
+							commands_data = commands_data['commands']
+
+							for system_code, commands_data in commands_data.items():
+								if system_code in self.uids.values():
+									for _uid in self.uids:
+										if system_code == self.uids[_uid]:
+											uid = _uid
+
+									for command_name, command_value in commands_data.items():
+										message = TLVMessage.createTLVCommandFromJson(
+											uid, command_name, command_value
+										)
+
+										messages_to_send.append(message)
+
+										# Test - Uncomment this line to check if the message is well formated
+										# print(TLVMessage(io.BytesIO(message)))
+
+								else:
+									raise Exception('Unknown system code ({}).'.format(system_code))
+
+						except Exception as e:
+							print('Error:', e)
+
+						finally:
+							os.remove(osp.join(self.commands_dir, commands_filename))
+
+				# Actually send messages
+				for message in messages_to_send:
+
+					if not self.debug:
+
+						# Send the message to all connected STM32
+						for port_name in self.se:
+							self.se[port_name].write(message)
+
+					print('>>> Sent command: {:040x}'.format(int.from_bytes(message, byteorder='big')))
+
+
+				# Remove commands files
+				for f in glob.glob(osp.join(self.commands_dir, '*')):
+					os.remove(f)
+
+				time.sleep(1)
+
+		except Exception as e:
+			print('ERROR: An error occured while sending commands.')
+			# raise e
+
+		finally:
+			for port_name in self.se:
+				try:
+					self.se[port_name].close()
+				except Exception as e:
+					print('Cannot close port {}: {}'.format(port_name, e))
