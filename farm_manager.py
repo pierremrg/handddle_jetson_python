@@ -13,8 +13,6 @@ from threads.send_commands_thread import SendCommandsThread
 
 class FarmManager:
 
-	can_send = defaultdict(lambda: False) # True/False for each system
-
 	def __init__(self, config_filepath):
 
 		# Configuration

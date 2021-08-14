@@ -10,7 +10,7 @@ from messages.tlv_data import TLVData
 from messages.message import *
 
 ######################
-# Read received json_files #
+# Read received data #
 ######################
 
 class ReadDataThread(threading.Thread):
