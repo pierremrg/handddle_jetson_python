@@ -100,7 +100,8 @@ class SecondaryMessage(Message):
 		4: 'heating_temperature',
 		5: 'pressure',
 		6: 'relay_state',
-		7: 'buzzer_state'
+		7: 'buzzer_state',
+                8: 'preheat_over'
 	}
 
 	def __init__(self, subtype, content):
@@ -145,8 +146,7 @@ class InformationMessage(Message):
 	DATA_TYPES = {
 		1: 'day_night',
 		2: 'mode',
-		3: 'pollution_threshold',
-		4: 'preheat_over'
+		3: 'pollution_threshold'
 	}
 
 	def __init__(self, subtype, content):

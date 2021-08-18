@@ -1,13 +1,13 @@
 serial:
   baudrate: 9600
-  ports_prefix: ttyACM
+  ports_prefix: /dev/ttyACM
 
 uids:
   c0c0c0c0: T-01
   c0c0c0c1: T-02
 
-root_dir: D:\Documents\PycharmProjects\handddle_farm
-received_data_dir: json_files/received_data
-commands_dir: json_files/commands
+root_dir: /home/handddle/.programs/handddle_jetson_python/
+received_data_dir: received_data/
+commands_dir: commands/
 
 debug: false

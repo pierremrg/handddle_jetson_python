@@ -73,19 +73,18 @@ class FarmManager:
 			self.se = {}
 			for p in ports:
 				port_full_name = p[0]
-				port_name = p[1]
 
-				if port_name.startswith(self.serial_ports_prefix):
-					self.se[port_name] = serial.Serial()
-					self.se[port_name].baudrate = self.serial_baudrate
-					self.se[port_name].port = port_full_name
-					self.se[port_name].open()
+				if port_full_name.startswith(self.serial_ports_prefix):
+					self.se[port_full_name] = serial.Serial()
+					self.se[port_full_name].baudrate = self.serial_baudrate
+					self.se[port_full_name].port = port_full_name
+					self.se[port_full_name].open()
 
 					time.sleep(0.1)
-					self.se[port].flushInput()
-					self.se[port].flushOutput()
+					self.se[port_full_name].flushInput()
+					self.se[port_full_name].flushOutput()
 
-					print('\t- Port {} initialized.'.format(port))
+					print('\t- Port {} initialized.'.format(port_full_name))
 
 		else:
 			self.se['P0'] = None
