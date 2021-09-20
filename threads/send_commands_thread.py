@@ -80,7 +80,7 @@ class SendCommandsThread(threading.Thread):
 
 						# Send the message to all connected STM32
 						for port_name in self.se:
-							self.se[port_name].write(message)
+							self.se[port_name].write(message + b'\x0a')
 
 					print('>>> Sent command: {:040x}'.format(int.from_bytes(message, byteorder='big')))
 

@@ -17,9 +17,13 @@ class ReadDataThread(threading.Thread):
 	def __init__(self, se, received_data_dir, uids, debug):
 		threading.Thread.__init__(self)
 		self.se = se
+		print(se)
 		self.received_data_dir = received_data_dir
+		print(received_data_dir)		
 		self.uids = uids
+		print(uids)
 		self.debug = debug
+		print(debug)
 
 	def run(self):
 
@@ -36,18 +40,25 @@ class ReadDataThread(threading.Thread):
 					raw_received_data = None
 
 					if self.se[port_name] and self.se[port_name].in_waiting:
-						raw_received_data = self.se[port_name].readline()
+						raw_received_data = b''
+						while self.se[port_name].in_waiting:
+							raw_received_data += self.se[port_name].read(1)
+							time.sleep(0.001)
+
+						#raw_received_data = self.se[port_name].read(20)
+						#raw_received_data = self.se[port_name].readline()
+						#raw_received_data = raw_received_data[:-1]
 						has_data = True
 
 					if self.debug:
 						raw_received_data = input('Enter a valid hex message received from the STM32: ')
 
 						# Example test messages
-						raw_received_data = '01010010C0C0C0C002010001AA02020002FEFE00' # Main / Temp + Hum
+						# raw_received_data = '01010010C0C0C0C002010001AA02020002FEFE00' # Main / Temp + Hum
 						# raw_received_data = '01010010C0C0C0C0000500010102020002FEFE00' # Internal
 						# raw_received_data = '01010010C0C0C0C0010400010400000000000000' # Command
 						# raw_received_data = '01010010C0C0C0C0030300021001050200010000' # Other
-						# raw_received_data = '01010010C0C0C0C0040100010100000000000000' # Error
+						raw_received_data = '01010010C0C0C0C0040100010100000000000000' # Error
 
 						if raw_received_data != '':
 							raw_received_data = bytes.fromhex(raw_received_data)
@@ -55,35 +66,42 @@ class ReadDataThread(threading.Thread):
 
 					if has_data:
 
-						try:
-							# TODO Check if the following line gets binary data from the STM32 correctly
-							message_stream = io.BytesIO(raw_received_data)
-							tlv_message = TLVMessage(message_stream)
+						raw_received_data_chunks = [raw_received_data[i:i+21] for i in range(0, len(raw_received_data), 21)]
 
-							# Here (= no error), we have a valid message from the STM32
-							if tlv_message.uid in self.uids:
-								system_code = self.uids[tlv_message.uid]
-							else:
-								raise Exception('Unknown UID ({}).'.format(tlv_message.uid))
+						for chunk in raw_received_data_chunks:
+							chunk = chunk[:-1]		
+							if len(chunk) == 0:
+								continue			
 
-							# Receiving json_files
-							for tlv_data in tlv_message.payload:
-								current_timestamp = time.time() + random.random() / 1000
-								message = tlv_data.payload
+							try:
+								# TODO Check if the following line gets binary data from the STM32 correctly
+								message_stream = io.BytesIO(chunk)
+								tlv_message = TLVMessage(message_stream)
 
-								print('<<< Message received on port ' + port_name + ': ' + str(message))
+								# Here (= no error), we have a valid message from the STM32
+								if tlv_message.uid in self.uids:
+									system_code = self.uids[tlv_message.uid]
+								else:
+									raise Exception('Unknown UID ({}).'.format(tlv_message.uid))
 
-								if type(message) is MainMessage:
-									with open(osp.join(self.received_data_dir, str(current_timestamp) + '.json'), 'w') as received_data_file:
-										json_data = {'received_data': {system_code: {}}}
-										json_data['received_data'][system_code][message.data_name] = message.data_value
+								# Receiving json_files
+								for tlv_data in tlv_message.payload:
+									current_timestamp = time.time() + random.random() / 1000
+									message = tlv_data.payload
 
-										# Write received json_files to file
-										json.dump(json_data, received_data_file)
+									print('<<< Message received on port ' + port_name + ': ' + str(message))
+
+									if type(message) is MainMessage:
+										with open(osp.join(self.received_data_dir, str(current_timestamp) + '.json'), 'w') as received_data_file:
+											json_data = {'received_data': {system_code: {}}}
+											json_data['received_data'][system_code][message.data_name] = message.data_value
+
+											# Write received json_files to file
+											json.dump(json_data, received_data_file)
 
 
-						except Exception as e:
-							print('Error with a message received on port {}: {} (Raw message: {})'.format(port_name, e, raw_received_data.hex()))
+							except Exception as e:
+								print('Error with a message received on port {}: {} (Raw message: {})'.format(port_name, e, chunk.hex()))
 
 				time.sleep(0.5)
 

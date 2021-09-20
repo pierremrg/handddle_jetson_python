@@ -39,8 +39,8 @@ class CommandMessage(Message):
 		2: {'name': 'door_open', 'values': [1]},
 		3: {'name': 'temperature', 'values': [t for t in range(100)]},
 		4: {'name': 'led_color', 'values': [0, 1, 2, 3, 4, 5, 6, 7]},
-		5: {'name': 'printing_state', 'values': [0, 1, 2, 3, 4, 5, 6, 7]},
-		6: {'name': 'air_extraction', 'values': [e for e in range(100)]}
+		6: {'name': 'printing_state', 'values': [0, 1, 2, 3, 4, 5, 6, 7]},
+		7: {'name': 'air_extraction', 'values': [e for e in range(100)]}
 	}
 
 	def __init__(self, subtype, content):
