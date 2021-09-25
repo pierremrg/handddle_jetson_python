@@ -17,13 +17,9 @@ class ReadDataThread(threading.Thread):
 	def __init__(self, se, received_data_dir, uids, debug):
 		threading.Thread.__init__(self)
 		self.se = se
-		print(se)
 		self.received_data_dir = received_data_dir
-		print(received_data_dir)		
 		self.uids = uids
-		print(uids)
 		self.debug = debug
-		print(debug)
 
 	def run(self):
 
@@ -40,14 +36,12 @@ class ReadDataThread(threading.Thread):
 					raw_received_data = None
 
 					if self.se[port_name] and self.se[port_name].in_waiting:
+
 						raw_received_data = b''
 						while self.se[port_name].in_waiting:
 							raw_received_data += self.se[port_name].read(1)
 							time.sleep(0.001)
 
-						#raw_received_data = self.se[port_name].read(20)
-						#raw_received_data = self.se[port_name].readline()
-						#raw_received_data = raw_received_data[:-1]
 						has_data = True
 
 					if self.debug:
@@ -58,7 +52,7 @@ class ReadDataThread(threading.Thread):
 						# raw_received_data = '01010010C0C0C0C0000500010102020002FEFE00' # Internal
 						# raw_received_data = '01010010C0C0C0C0010400010400000000000000' # Command
 						# raw_received_data = '01010010C0C0C0C0030300021001050200010000' # Other
-						raw_received_data = '01010010C0C0C0C0040100010100000000000000' # Error
+						# raw_received_data = '01010010C0C0C0C0040100010100000000000000' # Error
 
 						if raw_received_data != '':
 							raw_received_data = bytes.fromhex(raw_received_data)

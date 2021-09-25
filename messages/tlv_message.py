@@ -112,4 +112,4 @@ class TLVMessage:
 
 		hexa = hexa.ljust(20*2, '0') # Padding
 
-		return bytes.fromhex(hexa)
+		return bytes.fromhex(hexa), hexa

@@ -30,6 +30,8 @@ class SendCommandsThread(threading.Thread):
 
 			while True:  # Infinite loop
 
+				# print('Reading commands files...')
+
 				# Messages ready to be sent to all STM32
 				messages_to_send = []
 
@@ -55,7 +57,7 @@ class SendCommandsThread(threading.Thread):
 											uid = _uid
 
 									for command_name, command_value in commands_data.items():
-										message = TLVMessage.createTLVCommandFromJson(
+										message, hexa = TLVMessage.createTLVCommandFromJson(
 											uid, command_name, command_value
 										)
 
@@ -70,8 +72,6 @@ class SendCommandsThread(threading.Thread):
 						except Exception as e:
 							print('Error:', e)
 
-						finally:
-							os.remove(osp.join(self.commands_dir, commands_filename))
 
 				# Actually send messages
 				for message in messages_to_send:
@@ -80,7 +80,9 @@ class SendCommandsThread(threading.Thread):
 
 						# Send the message to all connected STM32
 						for port_name in self.se:
-							self.se[port_name].write(message + b'\x0a')
+							for i in range(len(message)):
+								self.se[port_name].write(message[i:i+1])
+								time.sleep(0.001)
 
 					print('>>> Sent command: {:040x}'.format(int.from_bytes(message, byteorder='big')))
 
