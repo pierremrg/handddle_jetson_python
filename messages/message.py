@@ -36,11 +36,13 @@ class CommandMessage(Message):
 	COMMAND_TYPES = {
 		0: {'name': 'ack', 'values': [0, 1]},
 		1: {'name': 'on_off', 'values': [0, 1]},
-		2: {'name': 'door_open', 'values': [1]},
-		3: {'name': 'temperature', 'values': [t for t in range(100)]},
-		4: {'name': 'led_color', 'values': [0, 1, 2, 3, 4, 5, 6, 7]},
+		2: {'name': 'door_open', 'values': [0, 1]},
+		3: {'name': 'forcing_door', 'values': [1]},
+		4: {'name': 'temperature', 'values': [t for t in range(100)]},
+		5: {'name': 'led_color', 'values': [0, 1, 2, 3, 4, 5, 6, 7]},
 		6: {'name': 'printing_state', 'values': [0, 1, 2, 3, 4, 5, 6, 7]},
-		7: {'name': 'air_extraction', 'values': [e for e in range(100)]}
+		7: {'name': 'air_extraction', 'values': [e for e in range(100)]},
+		8: {'name': 'relay', 'values': [1]}
 	}
 
 	def __init__(self, subtype, content):
@@ -101,7 +103,7 @@ class SecondaryMessage(Message):
 		5: 'pressure',
 		6: 'relay_state',
 		7: 'buzzer_state',
-                8: 'preheat_over'
+        8: 'preheat_over'
 	}
 
 	def __init__(self, subtype, content):
@@ -144,9 +146,12 @@ class ErrorMessage(Message):
 class InformationMessage(Message):
 
 	DATA_TYPES = {
+		0: 'ack',
 		1: 'day_night',
-		2: 'mode',
-		3: 'pollution_threshold'
+		2: 'temperature_manual_mode',
+		3: 'filtration_manual_mode',
+		4: 'pollution_threshold',
+		5: 'door_state'
 	}
 
 	def __init__(self, subtype, content):

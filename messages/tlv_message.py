@@ -104,6 +104,11 @@ class TLVMessage:
 		if command_id is None:
 			raise Exception('Unsupported command: {}'.format(command_name))
 
+		if command_value not in CommandMessage.COMMAND_TYPES[command_id]['values']:
+			raise Exception('Unsupported value for the {} command: {}'.format(
+				command_name, command_value
+			))
+
 		hexa += '{:02x}'.format(command_id) # Command type
 
 		hexa += '{:04x}'.format(1) # Value length (1 byte)
