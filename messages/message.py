@@ -41,7 +41,7 @@ class CommandMessage(Message):
 		4: {'name': 'temperature', 'values': [t for t in range(100)]},
 		5: {'name': 'led_color', 'values': [0, 1, 2, 3, 4, 5, 6, 7]},
 		6: {'name': 'printing_state', 'values': [0, 1, 2, 3, 4, 5, 6, 7]},
-		7: {'name': 'air_extraction', 'values': [e for e in range(100)]},
+		7: {'name': 'air_extraction', 'values': [e for e in range(100+1)]},
 		8: {'name': 'relay', 'values': [1]}
 	}
 

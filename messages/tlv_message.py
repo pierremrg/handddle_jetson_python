@@ -92,7 +92,7 @@ class TLVMessage:
 	def createTLVCommandFromJson(hex_uid, command_name, command_value):
 		hexa  = '{:04x}'.format(TLVMessage.CORRECT_TYPE) # Type
 		hexa += '{:04x}'.format(16) # Length
-		hexa += hex_uid.zfill(8) # UID
+		hexa += str(hex_uid).zfill(8) # UID
 		hexa += '{:02x}'.format(TLVData.MESSAGE_TYPES['COMMAND']) # Type = command
 
 		# Get command message id
