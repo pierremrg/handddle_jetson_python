@@ -23,7 +23,7 @@ class TLVMessage:
 			raise Exception('Incorrect TLVMessage length.')
 
 		# UID + Payload
-		self.uid = stream.read(4).hex()
+		self.uid = str(stream.read(4).hex()).upper()
 		self.payload = TLVMessage.parseTVLMessagePayload(stream.read())
 
 

@@ -51,11 +51,21 @@ class FarmManager:
 		self.received_data_dir = osp.join(self.root_dir, self.config['received_data_dir'])
 		self.commands_dir = osp.join(self.root_dir, self.config['commands_dir'])
 
+		# Create directories if needed
 		if not osp.isdir(self.received_data_dir):
 			os.makedirs(self.received_data_dir)
 
 		if not osp.isdir(self.commands_dir):
 			os.makedirs(self.commands_dir)
+
+		# Empty directories
+		for filename in os.listdir(self.received_data_dir):
+			file_path = osp.join(self.received_data_dir, filename)
+			os.unlink(file_path)
+
+		for filename in os.listdir(self.commands_dir):
+			file_path = osp.join(self.commands_dir, filename)
+			os.unlink(file_path)
 
 		self.serial_baudrate = self.config['serial']['baudrate']
 		self.serial_ports_prefix = self.config['serial']['ports_prefix']
