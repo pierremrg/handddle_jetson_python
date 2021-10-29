@@ -39,11 +39,11 @@ class CommandMessage(Message):
 		2: {'name': 'door_closed', 'values': [0, 1]},
 		3: {'name': 'forcing_door', 'values': [1]},
 		4: {'name': 'temperature', 'values': [t for t in range(100+1)]},
-		5: {'name': 'led_color', 'values': [0, 1, 2, 3, 4, 5, 6, 7, 8]},
+		5: {'name': 'led_color', 'values': [0, 1, 2, 3, 4, 5, 6, 7]},
 		6: {'name': 'printing_state', 'values': [0, 1, 2, 3, 4, 5, 6, 7]},
 		7: {'name': 'air_extraction', 'values': [e for e in range(100+1)]},
-		8: {'name': 'relay', 'values': [0, 1]},
-		9: {'name': 'tare', 'values': [0, 1]},
+		8: {'name': 'relay_off', 'values': [0, 1]},
+		9: {'name': 'tare', 'values': [1]},
 		10:{'name': 'get_weight', 'values': [1]}
 	}
 
@@ -81,7 +81,10 @@ class MainMessage(Message):
 		9: 'led_color',
 		10: 'printing_state',
 		11: 'latch_status',
-		12: 'weight'
+		12: 'weight',
+		13: 'pm1.0',
+		14: 'pm2.5',
+		15: 'pm10'
 	}
 
 	def __init__(self, subtype, content):
