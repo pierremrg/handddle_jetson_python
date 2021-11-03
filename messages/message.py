@@ -44,7 +44,8 @@ class CommandMessage(Message):
 		7: {'name': 'air_extraction', 'values': [e for e in range(100+1)]},
 		8: {'name': 'relay_off', 'values': [0, 1]},
 		9: {'name': 'tare', 'values': [1]},
-		10:{'name': 'get_weight', 'values': [1]}
+		10:{'name': 'get_weight', 'values': [1]},
+		11:{'name': 'MP_Env', 'values': [0,1]}
 	}
 
 	def __init__(self, subtype, content):
@@ -82,9 +83,10 @@ class MainMessage(Message):
 		10: 'printing_state',
 		11: 'latch_status',
 		12: 'weight',
-		13: 'pm1.0',
-		14: 'pm2.5',
-		15: 'pm10'
+		13: 'pm10',
+		14: 'pm25',
+		15: 'pm100',
+		16: 'phk'
 	}
 
 	def __init__(self, subtype, content):
