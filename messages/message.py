@@ -44,8 +44,9 @@ class CommandMessage(Message):
 		7: {'name': 'air_extraction', 'values': [e for e in range(100+1)]},
 		8: {'name': 'relay_off', 'values': [0, 1]},
 		9: {'name': 'tare', 'values': [1]},
-		10:{'name': 'get_weight', 'values': [1]},
-		11:{'name': 'MP_Env', 'values': [0,1]}
+		10: {'name': 'get_weight', 'values': [1]},
+		11: {'name': 'update_watchdog', 'values': [1]},
+		12: {'name': 'force_reset', 'values': [1]}
 	}
 
 	def __init__(self, subtype, content):

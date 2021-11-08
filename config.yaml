@@ -3,17 +3,13 @@ serial:
   ports_prefix: /dev/tty
 
 uids:
-  C0030101: T-01
-  C0020102: R-01
-  C0010201: T-02
-  C0010301: T-03
-  C0020302: R-03
-  C0010401: T-04
-  C0020402: R-04
-  C0010501: T-05
-  C0020502: R-05
+  C0000001: T-01
+  C0000002: T-02
+  C0FFFFFF: broadcast
 
-root_dir: /home/handddle/.programs/handddle_jetson_python/json_files
+watchdog_interval: 9 # Seconds
+
+root_dir: /home/pierre/.programs/handddle_jetson_python/json_files
 received_data_dir: received_data/
 commands_dir: commands/
 

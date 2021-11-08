@@ -15,12 +15,15 @@ from messages.tlv_data import TLVData
 ################################
 
 class SendCommandsThread(threading.Thread):
-	def __init__(self, se, commands_dir, uids, debug):
+	def __init__(self, se, commands_dir, uids, debug, watchdog_interval):
 		threading.Thread.__init__(self)
 		self.se = se
 		self.commands_dir = commands_dir
 		self.uids = uids
 		self.debug = debug
+		self.messages_to_send = []
+		self.watchdog_interval = watchdog_interval
+		self.watchdog_count = 0
 
 	def run(self):
 
@@ -33,8 +36,18 @@ class SendCommandsThread(threading.Thread):
 				# print('Reading commands files...')
 
 				# Messages ready to be sent to all STM32
-				messages_to_send = []
+				self.messages_to_send = []
 
+				# Watchdog update
+				if self.watchdog_count % self.watchdog_interval == 0:
+					message, hexa = TLVMessage.createTLVCommandFromJson(
+						'C0FFFFFF', 'update_watchdog', 1
+					)
+
+					self.watchdog_count = 0
+					self.messages_to_send.append(message)
+
+				# Regular commands
 				commands_filenames = [f for f in os.listdir(self.commands_dir) if osp.isfile(osp.join(self.commands_dir, f))]
 				commands_filenames = sorted(commands_filenames, key=lambda filename: int(filename.split('.')[0]))
 
@@ -61,7 +74,7 @@ class SendCommandsThread(threading.Thread):
 											uid, command_name, command_value
 										)
 
-										messages_to_send.append(message)
+										self.messages_to_send.append(message)
 
 										# Test - Uncomment this line to check if the message is well formated
 										# print(TLVMessage(io.BytesIO(message)))
@@ -74,23 +87,14 @@ class SendCommandsThread(threading.Thread):
 
 
 				# Actually send messages
-				for message in messages_to_send:
-
-					if not self.debug:
-
-						# Send the message to all connected STM32
-						for port_name in self.se:
-							for i in range(len(message)):
-								self.se[port_name].write(message[i:i+1])
-								time.sleep(0.001)
-
-					print('>>> Sent command: {:040x}'.format(int.from_bytes(message, byteorder='big')))
+				self.sendMessages()
 
 
 				# Remove commands files
 				for f in glob.glob(osp.join(self.commands_dir, '*')):
 					os.remove(f)
 
+				self.watchdog_count += 1
 				time.sleep(1)
 
 		except Exception as e:
@@ -103,3 +107,18 @@ class SendCommandsThread(threading.Thread):
 					self.se[port_name].close()
 				except Exception as e:
 					print('Cannot close port {}: {}'.format(port_name, e))
+
+
+	def sendMessages(self):
+
+		for message in self.messages_to_send:
+
+			if not self.debug:
+
+				# Send the message to all connected STM32
+				for port_name in self.se:
+					for i in range(len(message)):
+						self.se[port_name].write(message[i:i + 1])
+						time.sleep(0.001)
+
+			print('>>> Sent command: {:040x}'.format(int.from_bytes(message, byteorder='big')))

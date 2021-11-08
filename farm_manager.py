@@ -27,6 +27,7 @@ class FarmManager:
 		self.serial_ports_prefix = None
 
 		self.uids = {}
+		self.watchdog_interval = None
 
 		self.debug = False
 
@@ -38,7 +39,7 @@ class FarmManager:
 
 		# Multithreading
 		self.readDataThread = ReadDataThread(self.se, self.received_data_dir, self.uids, self.debug)
-		self.sendCommandsThread = SendCommandsThread(self.se, self.commands_dir, self.uids, self.debug)
+		self.sendCommandsThread = SendCommandsThread(self.se, self.commands_dir, self.uids, self.debug, self.watchdog_interval)
 
 
 	def loadConfiguration(self):
@@ -71,6 +72,9 @@ class FarmManager:
 		self.serial_ports_prefix = self.config['serial']['ports_prefix']
 
 		self.uids = self.config['uids']
+
+		self.watchdog_interval = self.config['watchdog_interval']
+
 
 	def loadUSBPorts(self):
 		print('------------------------------')
