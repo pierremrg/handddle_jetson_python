@@ -1,6 +1,6 @@
 serial:
   baudrate: 9600
-  ports_prefix: /dev/tty
+  ports_prefix: /dev/ttyACM
 
 uids:
   C0000001: T-01
