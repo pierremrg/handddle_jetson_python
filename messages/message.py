@@ -46,7 +46,8 @@ class CommandMessage(Message):
 		9: {'name': 'tare', 'values': [1]},
 		10: {'name': 'get_weight', 'values': [1]},
 		11: {'name': 'update_watchdog', 'values': [1]},
-		12: {'name': 'force_reset', 'values': [1]}
+		12: {'name': 'force_reset', 'values': [1]},
+		13: {'name': 'buzzer', 'values': [0,1]}
 	}
 
 	def __init__(self, subtype, content):
@@ -86,7 +87,12 @@ class MainMessage(Message):
 		12: 'weight',
 		13: 'pm1',
 		14: 'pm25',
-		15: 'pm10'
+		15: 'pm10',
+		16: 'CO2',
+		17: 'TVOC',
+		18: 'TVOC_Warning',
+		19: 'CO2_warning',
+		20: 'Typology'
 	}
 
 	def __init__(self, subtype, content):
