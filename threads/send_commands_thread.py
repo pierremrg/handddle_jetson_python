@@ -41,7 +41,7 @@ class SendCommandsThread(threading.Thread):
 				# Watchdog update
 				if self.watchdog_count % self.watchdog_interval == 0:
 					message, hexa = TLVMessage.createTLVCommandFromJson(
-						'C0FFFFFF', 'update_watchdog', 1
+						'CFFFFFFF', 'update_watchdog', 1
 					)
 
 					self.watchdog_count = 0
