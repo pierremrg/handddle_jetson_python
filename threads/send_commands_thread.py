@@ -6,6 +6,7 @@ import json
 import time
 import io
 import glob
+import requests
 
 from messages.tlv_message import TLVMessage
 from messages.tlv_data import TLVData
@@ -15,15 +16,17 @@ from messages.tlv_data import TLVData
 ################################
 
 class SendCommandsThread(threading.Thread):
-	def __init__(self, se, commands_dir, uids, debug, watchdog_interval):
+	def __init__(self, se, api_server_config, uids, debug, watchdog_interval):
 		threading.Thread.__init__(self)
 		self.se = se
-		self.commands_dir = commands_dir
+		self.api_server_config = api_server_config
 		self.uids = uids
 		self.debug = debug
 		self.messages_to_send = []
 		self.watchdog_interval = watchdog_interval
 		self.watchdog_count = 0
+
+		self.last_check_date = int(time.time())
 
 	def run(self):
 
@@ -33,13 +36,12 @@ class SendCommandsThread(threading.Thread):
 
 			while True:  # Infinite loop
 
-				# print('Reading commands files...')
-
 				# Messages ready to be sent to all STM32
 				self.messages_to_send = []
 
 				# Watchdog update
-				if self.watchdog_count % self.watchdog_interval == 0:
+				# TODO Create another thread for the watchdog
+				if self.watchdog_count >= self.watchdog_interval:
 					message, hexa = TLVMessage.createTLVCommandFromJson(
 						'CFFFFFFF', 'update_watchdog', 1
 					)
@@ -48,65 +50,50 @@ class SendCommandsThread(threading.Thread):
 					self.messages_to_send.append(message)
 
 				# Regular commands
-				commands_filenames = [f for f in os.listdir(self.commands_dir) if osp.isfile(osp.join(self.commands_dir, f))]
-				commands_filenames = sorted(commands_filenames, key=lambda filename: int(filename.split('.')[0]))
+				r = self.api_server_config['session'].get(
+					url=self.api_server_config['protocol'] + '://' + self.api_server_config['host'],
+					params={
+						'organization_group.code': self.api_server_config['licence_key'],
+						'sent_date[gte]': self.last_check_date
+					}
+				)
+				commands_list = r.json()
+				self.last_check_date = int(time.time())
 
-				for commands_filename in commands_filenames:
+				for command in commands_list:
+					try:
+						if command['system_code'] in self.uids.values():
+							for uid in self.uids:
+								if command['system_code'] == self.uids[uid]:
+									message, hexa = TLVMessage.createTLVCommandFromJson(uid, command['action'], int(command['data']))
+									self.messages_to_send.append(message)
 
-					with open(osp.join(self.commands_dir, commands_filename), 'r') as commands_file:
+									# Test - Uncomment this line to check if the message is well formated
+									# print(TLVMessage(io.BytesIO(message)))
 
-						try:
-							commands_data = commands_file.read()
-							commands_data = re.sub('\s+', '', commands_data)
-							commands_data = json.loads(commands_data)
+						else:
+							raise Exception('Unknown system code ({}).'.format(command['system_code']))
 
-							# Here (= no error), we have a JSON document
-							commands_data = commands_data['commands']
-
-							for system_code, commands_data in commands_data.items():
-								if system_code in self.uids.values():
-									for _uid in self.uids:
-										if system_code == self.uids[_uid]:
-											uid = _uid
-
-									for command_name, command_value in commands_data.items():
-										message, hexa = TLVMessage.createTLVCommandFromJson(
-											uid, command_name, command_value
-										)
-
-										self.messages_to_send.append(message)
-
-										# Test - Uncomment this line to check if the message is well formated
-										# print(TLVMessage(io.BytesIO(message)))
-
-								else:
-									raise Exception('Unknown system code ({}).'.format(system_code))
-
-						except Exception as e:
-							print('Error:', e)
-
+					except Exception as e:
+						print('Error:', e)
 
 				# Actually send messages
 				self.sendMessages()
 
-
-				# Remove commands files
-				for f in glob.glob(osp.join(self.commands_dir, '*')):
-					os.remove(f)
-
-				self.watchdog_count += 1
-				time.sleep(1)
+				self.watchdog_count += 2
+				time.sleep(2)
 
 		except Exception as e:
 			print('ERROR: An error occured while sending commands.')
-			# raise e
+			raise e
 
 		finally:
-			for port_name in self.se:
-				try:
-					self.se[port_name].close()
-				except Exception as e:
-					print('Cannot close port {}: {}'.format(port_name, e))
+			if not self.debug:
+				for port_name in self.se:
+					try:
+						self.se[port_name].close()
+					except Exception as e:
+						print('Cannot close port {}: {}'.format(port_name, e))
 
 
 	def sendMessages(self):

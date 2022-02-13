@@ -2,7 +2,6 @@ import threading
 import time
 import io
 import json
-from os import path as osp
 import random
 
 from messages.tlv_message import TLVMessage
@@ -14,10 +13,10 @@ from messages.message import *
 ######################
 
 class ReadDataThread(threading.Thread):
-	def __init__(self, se, received_data_dir, uids, debug):
+	def __init__(self, se, api_server_config, uids, debug):
 		threading.Thread.__init__(self)
 		self.se = se
-		self.received_data_dir = received_data_dir
+		self.api_server_config = api_server_config
 		self.uids = uids
 		self.debug = debug
 
@@ -48,7 +47,9 @@ class ReadDataThread(threading.Thread):
 						raw_received_data = input('Enter a valid hex message received from the STM32: ')
 
 						# Example test messages
-						# raw_received_data = '01010010C0C0C0C002010001AA02020002FEFE00' # Main / Temp + Hum
+						# raw_received_data = '01010010C0C0C0C002010001AA00000000000000FF' # Main / Temp
+						# raw_received_data = '01010010C0C0C0C002010001AA00000000000000FF' # Main / Hum
+						# raw_received_data = '01010010C0C0C0C002010001AA02020002FEFE00FF' # Main / Temp + Hum
 						# raw_received_data = '01010010C0C0C0C0000500010102020002FEFE00' # Internal
 						# raw_received_data = '01010010C0C0C0C0010400010400000000000000' # Command
 						# raw_received_data = '01010010C0C0C0C0030300021001050200010000' # Other
@@ -78,21 +79,27 @@ class ReadDataThread(threading.Thread):
 								else:
 									raise Exception('Unknown UID ({}).'.format(tlv_message.uid))
 
-								# Receiving json_files
+								# Manage received data
+								data_to_send = {} # Data to send for one specific system code
 								for tlv_data in tlv_message.payload:
-									current_timestamp = time.time() + random.random() / 1000
 									message = tlv_data.payload
 
-									print('<<< Message received on port ' + port_name + ': ' + str(message))
-
 									if type(message) is MainMessage:
-										with open(osp.join(self.received_data_dir, str(current_timestamp) + '.json'), 'w') as received_data_file:
-											json_data = {'received_data': {system_code: {}}}
-											json_data['received_data'][system_code][message.data_name] = message.data_value
+										data_to_send[message.data.getKey()] = message.data.getValue()
+										print('<<< Message received on port ' + port_name + ': ' + str(message))
 
-											# Write received json_files to file
-											json.dump(json_data, received_data_file)
-
+								# Actually send data
+								self.api_server_config['session'].post(
+									url=self.api_server_config['protocol'] + '://' + self.api_server_config['host'] + '/public/api/farm_datas',
+									headers={
+										'Content-type': 'application/json'
+									},
+									data=json.dumps({
+										'system_code': system_code,
+										'measure_date': int(time.time()),
+										'data': data_to_send
+									})
+								)
 
 							except Exception as e:
 								print('Error with a message received on port {}: {} (Raw message: {})'.format(port_name, e, chunk.hex()))
@@ -101,7 +108,7 @@ class ReadDataThread(threading.Thread):
 
 
 		except Exception as e:
-			print('ERROR: An error occured while reading json_files.')
+			print('ERROR: An error occured while dealing with received data.')
 			raise e
 
 		finally:

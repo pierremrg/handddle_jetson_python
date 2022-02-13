@@ -1,4 +1,5 @@
 import io
+from importlib import import_module
 
 class Message:
 
@@ -73,26 +74,26 @@ class CommandMessage(Message):
 class MainMessage(Message):
 
 	DATA_TYPES = {
-		1: 'temperature',
-		2: 'humidity',
-		3: 'temperature_humidity',
-		4: 'current_ee',
-		5: 'current_printer',
-		6: 'door_closed',
-		7: 'pollution',
-		8: 'sound',
-		9: 'led_color',
-		10: 'printing_state',
-		11: 'latch_status',
-		12: 'weight',
-		13: 'pm1',
-		14: 'pm25',
-		15: 'pm10',
-		16: 'CO2',
-		17: 'TVOC',
-		18: 'TVOC_Warning',
-		19: 'CO2_warning',
-		20: 'Typology'
+		1: {'name': 'temperature', 'class': 'temperature_data_persister'},
+		2: {'name': 'humidity', 'class': 'default_data_persister'},
+		3: {'name': 'temperature_humidity', 'class': 'default_data_persister'}, # Unused
+		4: {'name': 'current_ee', 'class': 'default_data_persister'},
+		5: {'name': 'current_printer', 'class': 'default_data_persister'},
+		6: {'name': 'door_closed', 'class': 'door_closed_data_persister'},
+		7: {'name': 'pollution', 'class': 'default_data_persister'}, # Unused
+		8: {'name': 'sound', 'class': 'default_data_persister'}, # Unused
+		9: {'name': 'led_color', 'class': 'default_data_persister'},
+		10: {'name': 'printing_state', 'class': 'default_data_persister'}, # Unused
+		11: {'name': 'latch_status', 'class': 'default_data_persister'}, # Unused
+		12: {'name': 'weight', 'class': 'default_data_persister'},
+		13: {'name': 'pm1', 'class': 'default_data_persister'},
+		14: {'name': 'pm25', 'class': 'default_data_persister'},
+		15: {'name': 'pm10', 'class': 'default_data_persister'},
+		16: {'name': 'CO2', 'class': 'default_data_persister'}, # Unused
+		17: {'name': 'TVOC', 'class': 'default_data_persister'}, # Unused
+		18: {'name': 'TVOC_Warning', 'class': 'default_data_persister'}, # Unused
+		19: {'name': 'CO2_warning', 'class': 'default_data_persister'}, # Unused
+		20: {'name': 'Typology', 'class': 'default_data_persister'} # Unused
 	}
 
 	def __init__(self, subtype, content):
@@ -101,11 +102,16 @@ class MainMessage(Message):
 		if self.subtype not in MainMessage.DATA_TYPES.keys():
 			raise Exception('Invalid main message type: {}'.format(self.subtype))
 
-		self.data_name = MainMessage.DATA_TYPES[self.subtype]
-		self.data_value = int.from_bytes(self.stream.read(), byteorder='big')
+		data_class = getattr(import_module('data_persisters.' + MainMessage.DATA_TYPES[self.subtype]['class']),
+			''.join(x for x in MainMessage.DATA_TYPES[self.subtype]['class'].title() if x.isalnum())
+		)
+		self.data = data_class(
+			MainMessage.DATA_TYPES[self.subtype]['name'],
+			int.from_bytes(self.stream.read(), byteorder='big')
+		)
 
 	def __repr__(self):
-		return '[Main message | Data name: {} | Data value: {}]'.format(self.data_name, self.data_value)
+		return '[Main message | Data name: {} | Data value: {}]'.format(self.data.getKey(), self.data.getValue())
 
 
 class SecondaryMessage(Message):

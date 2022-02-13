@@ -1,3 +1,4 @@
+import requests
 import serial
 import serial.tools.list_ports as port_list
 import json
@@ -19,9 +20,7 @@ class FarmManager:
 		self.config_filepath = config_filepath
 		self.config = None
 
-		self.root_dir = None
-		self.received_data_dir = None
-		self.commands_dir = None
+		self.api_server_config = None
 
 		self.serial_baudrate = None
 		self.serial_ports_prefix = None
@@ -38,8 +37,8 @@ class FarmManager:
 		self.loadUSBPorts()
 
 		# Multithreading
-		self.readDataThread = ReadDataThread(self.se, self.received_data_dir, self.uids, self.debug)
-		self.sendCommandsThread = SendCommandsThread(self.se, self.commands_dir, self.uids, self.debug, self.watchdog_interval)
+		self.readDataThread = ReadDataThread(self.se, self.api_server_config, self.uids, self.debug)
+		self.sendCommandsThread = SendCommandsThread(self.se, self.api_server_config, self.uids, self.debug, self.watchdog_interval)
 
 
 	def loadConfiguration(self):
@@ -48,26 +47,11 @@ class FarmManager:
 
 		self.debug = self.config['debug']
 
-		self.root_dir = self.config['root_dir']
-		self.received_data_dir = osp.join(self.root_dir, self.config['received_data_dir'])
-		self.commands_dir = osp.join(self.root_dir, self.config['commands_dir'])
+		self.api_server_config = self.config['api_server']
+		# Create a unique server session for the whole app
+		self.api_server_config['session'] = requests.Session()
 
-		# Create directories if needed
-		if not osp.isdir(self.received_data_dir):
-			os.makedirs(self.received_data_dir)
-
-		if not osp.isdir(self.commands_dir):
-			os.makedirs(self.commands_dir)
-
-		# Empty directories
-		for filename in os.listdir(self.received_data_dir):
-			file_path = osp.join(self.received_data_dir, filename)
-			os.unlink(file_path)
-
-		for filename in os.listdir(self.commands_dir):
-			file_path = osp.join(self.commands_dir, filename)
-			os.unlink(file_path)
-
+		# STM communication
 		self.serial_baudrate = self.config['serial']['baudrate']
 		self.serial_ports_prefix = self.config['serial']['ports_prefix']
 

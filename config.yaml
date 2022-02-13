@@ -3,14 +3,14 @@ serial:
   ports_prefix: /dev/ttyACM
 
 uids:
-  C1000001: T-01
-  C0000002: T-02
+  C0C0C0C0: T-01
   CFFFFFFF: broadcast
 
 watchdog_interval: 9 # Seconds
 
-root_dir: /home/handddle/Bureau/HANDDDLE/handddle_jetson_python/json_files
-received_data_dir: received_data/
-commands_dir: commands/
+api_server:
+  protocol: http
+  host: localhost/handddle_app_back
+  licence_key: HANDDDLE
 
 debug: false
