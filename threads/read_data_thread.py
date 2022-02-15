@@ -13,11 +13,12 @@ from messages.message import *
 ######################
 
 class ReadDataThread(threading.Thread):
-	def __init__(self, se, api_server_config, uids, debug):
+	def __init__(self, se, api_server_config, uids, transfer_queue, debug):
 		threading.Thread.__init__(self)
 		self.se = se
 		self.api_server_config = api_server_config
 		self.uids = uids
+		self.transfer_queue = transfer_queue
 		self.debug = debug
 
 	def run(self):
@@ -47,13 +48,14 @@ class ReadDataThread(threading.Thread):
 						raw_received_data = input('Enter a valid hex message received from the STM32: ')
 
 						# Example test messages
+						# raw_received_data = ''
 						# raw_received_data = '01010010C0C0C0C002010001AA00000000000000FF' # Main / Temp
 						# raw_received_data = '01010010C0C0C0C002010001AA00000000000000FF' # Main / Hum
 						# raw_received_data = '01010010C0C0C0C002010001AA02020002FEFE00FF' # Main / Temp + Hum
-						# raw_received_data = '01010010C0C0C0C0000500010102020002FEFE00' # Internal
-						# raw_received_data = '01010010C0C0C0C0010400010400000000000000' # Command
-						# raw_received_data = '01010010C0C0C0C0030300021001050200010000' # Other
-						# raw_received_data = '01010010C0C0C0C0040100010100000000000000' # Error
+						# raw_received_data = '01010010C0C0C0C0000500010102020002FEFE00FF' # Internal
+						# raw_received_data = '01010010C0C0C0C0010400010400000000000000FF' # Command
+						# raw_received_data = '01010010C0C0C0C0030300021001050200010000FF' # Other
+						# raw_received_data = '01010010C0C0C0C0040100010100000000000000FF' # Error
 
 						if raw_received_data != '':
 							raw_received_data = bytes.fromhex(raw_received_data)
@@ -70,8 +72,7 @@ class ReadDataThread(threading.Thread):
 
 							try:
 								# TODO Check if the following line gets binary data from the STM32 correctly
-								message_stream = io.BytesIO(chunk)
-								tlv_message = TLVMessage(message_stream)
+								tlv_message = TLVMessage(chunk)
 
 								# Here (= no error), we have a valid message from the STM32
 								if tlv_message.uid in self.uids:
@@ -81,30 +82,36 @@ class ReadDataThread(threading.Thread):
 
 								# Manage received data
 								data_to_send = {} # Data to send for one specific system code
+								has_data_to_send = False
 								for tlv_data in tlv_message.payload:
 									message = tlv_data.payload
 
 									if type(message) is MainMessage:
+										has_data_to_send = True
 										data_to_send[message.data.getKey()] = message.data.getValue()
 										print('<<< Message received on port ' + port_name + ': ' + str(message))
 
+									if type(message) is CommandMessage:
+										self.transfer_queue.put(tlv_message.hex_data)
+
 								# Actually send data
-								self.api_server_config['session'].post(
-									url=self.api_server_config['protocol'] + '://' + self.api_server_config['host'] + '/public/api/farm_datas',
-									headers={
-										'Content-type': 'application/json'
-									},
-									data=json.dumps({
-										'system_code': system_code,
-										'measure_date': int(time.time()),
-										'data': data_to_send
-									})
-								)
+								if has_data_to_send:
+									self.api_server_config['session'].post(
+										url=self.api_server_config['protocol'] + '://' + self.api_server_config['host'] + '/public/api/farm_datas',
+										headers={
+											'Content-type': 'application/json'
+										},
+										data=json.dumps({
+											'system_code': system_code,
+											'measure_date': int(time.time()),
+											'data': data_to_send
+										})
+									)
 
 							except Exception as e:
 								print('Error with a message received on port {}: {} (Raw message: {})'.format(port_name, e, chunk.hex()))
 
-				time.sleep(0.5)
+				time.sleep(0.1)
 
 
 		except Exception as e:

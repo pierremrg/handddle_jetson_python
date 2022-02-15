@@ -8,6 +8,7 @@ import os
 from os import path as osp
 import re
 from collections import defaultdict
+from queue import Queue
 
 from threads.read_data_thread import ReadDataThread
 from threads.send_commands_thread import SendCommandsThread
@@ -36,9 +37,12 @@ class FarmManager:
 		self.se = {}
 		self.loadUSBPorts()
 
+		# Command transfer
+		self.transfer_queue = Queue(maxsize=100)
+
 		# Multithreading
-		self.readDataThread = ReadDataThread(self.se, self.api_server_config, self.uids, self.debug)
-		self.sendCommandsThread = SendCommandsThread(self.se, self.api_server_config, self.uids, self.debug, self.watchdog_interval)
+		self.readDataThread = ReadDataThread(self.se, self.api_server_config, self.uids, self.transfer_queue, self.debug)
+		self.sendCommandsThread = SendCommandsThread(self.se, self.api_server_config, self.uids, self.transfer_queue, self.debug, self.watchdog_interval)
 
 
 	def loadConfiguration(self):

@@ -7,7 +7,10 @@ class TLVMessage:
 	HEADER_LENGTH = 4
 	CORRECT_TYPE = 257 # 0x0101
 
-	def __init__(self, stream):
+	def __init__(self, hex_data):
+		self.hex_data = hex_data
+
+		stream = io.BytesIO(self.hex_data)
 		stream.seek(0)
 
 		self.type = int.from_bytes(stream.read(2), byteorder='big')
