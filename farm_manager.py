@@ -12,6 +12,7 @@ from queue import Queue
 
 from threads.read_data_thread import ReadDataThread
 from threads.send_commands_thread import SendCommandsThread
+from threads.watchdog_thread import WatchdogThread
 
 class FarmManager:
 
@@ -42,7 +43,8 @@ class FarmManager:
 
 		# Multithreading
 		self.readDataThread = ReadDataThread(self.se, self.api_server_config, self.uids, self.transfer_queue, self.debug)
-		self.sendCommandsThread = SendCommandsThread(self.se, self.api_server_config, self.uids, self.transfer_queue, self.debug, self.watchdog_interval)
+		self.sendCommandsThread = SendCommandsThread(self.se, self.api_server_config, self.uids, self.transfer_queue, self.debug)
+		self.watchdogThread = WatchdogThread(self.watchdog_interval, self.transfer_queue, self.debug)
 
 
 	def loadConfiguration(self):
@@ -109,9 +111,11 @@ class FarmManager:
 
 		self.readDataThread.start()
 		self.sendCommandsThread.start()
+		self.watchdogThread.start()
 
 		self.readDataThread.join()
 		self.sendCommandsThread.join()
+		self.watchdogThread.join()
 
 
 if __name__ == '__main__':

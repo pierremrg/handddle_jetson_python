@@ -16,7 +16,7 @@ from messages.tlv_data import TLVData
 ################################
 
 class SendCommandsThread(threading.Thread):
-	def __init__(self, se, api_server_config, uids, transfer_queue, debug, watchdog_interval):
+	def __init__(self, se, api_server_config, uids, transfer_queue, debug):
 		threading.Thread.__init__(self)
 		self.se = se
 		self.api_server_config = api_server_config
@@ -24,8 +24,6 @@ class SendCommandsThread(threading.Thread):
 		self.transfer_queue = transfer_queue
 		self.debug = debug
 		self.messages_to_send = []
-		self.watchdog_interval = watchdog_interval
-		self.watchdog_count = 0
 
 		self.last_check_date = int(time.time())
 		self.is_connected = True
@@ -37,22 +35,10 @@ class SendCommandsThread(threading.Thread):
 		while True:  # Infinite loop
 			try:
 				waiting_duration = 2 if self.is_connected else 8
-
-				self.watchdog_count += waiting_duration
 				time.sleep(waiting_duration)
 
 				# Messages ready to be sent to all STM32
 				self.messages_to_send = []
-
-				# Watchdog update
-				# TODO Create another thread for the watchdog
-				if self.watchdog_count >= self.watchdog_interval:
-					message, hexa = TLVMessage.createTLVCommandFromJson(
-						'CFFFFFFF', 'update_watchdog', 1
-					)
-
-					self.watchdog_count = 0
-					self.messages_to_send.append(message)
 
 				# Regular commands
 				r = self.api_server_config['session'].get(
