@@ -96,17 +96,35 @@ class FarmManager:
 		print('------------------------------')
 
 
+	def closePorts(self):
+		if not self.debug:
+			for port_name in self.se:
+				try:
+					self.se[port_name].close()
+				except Exception as e:
+					print('Cannot close port {}: {}'.format(port_name, e))
+
+
 	def startProcesses(self):
 
-		if self.readDataThread is not None:
-			self.readDataThread.start()
+		self.readDataThread.start()
+		self.sendCommandsThread.start()
 
-		if self.sendCommandsThread is not None:
-			self.sendCommandsThread.start()
+		self.readDataThread.join()
+		self.sendCommandsThread.join()
 
 
 if __name__ == '__main__':
 
-	farmManager = FarmManager('config.yaml')
+	farmManager = None
 
-	farmManager.startProcesses()
+	try:
+		farmManager = FarmManager('config.yaml')
+		farmManager.startProcesses()
+
+	except e:
+		print('Error:', e)
+
+	finally:
+		if farmManager is not None:
+			farmManager.closePorts()

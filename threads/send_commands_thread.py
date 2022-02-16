@@ -28,14 +28,18 @@ class SendCommandsThread(threading.Thread):
 		self.watchdog_count = 0
 
 		self.last_check_date = int(time.time())
+		self.is_connected = True
 
 	def run(self):
 
 		print('Started SendCommandsThread')
 
-		try:
+		while True:  # Infinite loop
+			try:
+				waiting_duration = 2 if self.is_connected else 8
 
-			while True:  # Infinite loop
+				self.watchdog_count += waiting_duration
+				time.sleep(waiting_duration)
 
 				# Messages ready to be sent to all STM32
 				self.messages_to_send = []
@@ -56,9 +60,12 @@ class SendCommandsThread(threading.Thread):
 					params={
 						'organization_group.code': self.api_server_config['licence_key'],
 						'sent_date[gte]': self.last_check_date
-					}
+					},
+					timeout=10
 				)
+				self.is_connected = True
 				commands_list = r.json()
+				print(commands_list)
 				self.last_check_date = int(time.time())
 
 				for command in commands_list:
@@ -85,20 +92,16 @@ class SendCommandsThread(threading.Thread):
 				# Actually send messages
 				self.sendMessages()
 
-				self.watchdog_count += 2
-				time.sleep(2)
+			except requests.exceptions.ConnectionError as e:
+				self.is_connected = False
+				print('The application is not connected to internet. Retrying...')
 
-		except Exception as e:
-			print('ERROR: An error occured while sending commands.')
-			raise e
+			except requests.exceptions.ReadTimeout as e:
+				self.is_connected = False
+				print('The application could not reach the web server. Retrying...\nDetails:', e)
 
-		finally:
-			if not self.debug:
-				for port_name in self.se:
-					try:
-						self.se[port_name].close()
-					except Exception as e:
-						print('Cannot close port {}: {}'.format(port_name, e))
+			except Exception as e:
+				print('ERROR: An error occured while sending commands.')
 
 
 	def sendMessages(self):
