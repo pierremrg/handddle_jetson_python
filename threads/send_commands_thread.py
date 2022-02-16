@@ -49,9 +49,9 @@ class SendCommandsThread(threading.Thread):
 					},
 					timeout=10
 				)
-				self.is_connected = True
 				commands_list = r.json()
-				print(commands_list)
+
+				self.is_connected = True
 				self.last_check_date = int(time.time())
 
 				for command in commands_list:

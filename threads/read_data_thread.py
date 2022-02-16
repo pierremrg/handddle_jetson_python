@@ -4,6 +4,7 @@ import io
 import json
 import random
 import requests
+from datetime import datetime
 
 from messages.tlv_message import TLVMessage
 from messages.tlv_data import TLVData
@@ -14,12 +15,13 @@ from messages.message import *
 ######################
 
 class ReadDataThread(threading.Thread):
-	def __init__(self, se, api_server_config, uids, transfer_queue, debug):
+	def __init__(self, se, api_server_config, uids, transfer_queue, status_dict, debug):
 		threading.Thread.__init__(self)
 		self.se = se
 		self.api_server_config = api_server_config
 		self.uids = uids
 		self.transfer_queue = transfer_queue
+		self.status_dict = status_dict
 		self.debug = debug
 
 	def run(self):
@@ -48,11 +50,11 @@ class ReadDataThread(threading.Thread):
 						has_data = True
 
 					if self.debug:
-						raw_received_data = input('Enter a valid hex message received from the STM32: ')
+						# raw_received_data = input('Enter a valid hex message received from the STM32: ')
 
 						# Example test messages
 						raw_received_data = ''
-						raw_received_data = '01010010C0C0C0C002010001AA00000000000000FF' # Main / Temp
+						# raw_received_data = '01010010C0C0C0C002010001AA00000000000000FF' # Main / Temp
 						# raw_received_data = '01010010C0C0C0C002010001AA00000000000000FF' # Main / Hum
 						# raw_received_data = '01010010C0C0C0C002010001AA02020002FEFE00FF' # Main / Temp + Hum
 						# raw_received_data = '01010010C0C0C0C0000500010102020002FEFE00FF' # Internal
@@ -94,6 +96,10 @@ class ReadDataThread(threading.Thread):
 										data_to_send[message.data.getKey()] = message.data.getValue()
 										print('<<< Message received on port ' + port_name + ': ' + str(message))
 
+										self.status_dict[tlv_message.uid] = {
+											'system_code': system_code, 'check_date': datetime.now(), 'port': port_name
+										}
+
 									if type(message) is CommandMessage:
 										self.transfer_queue.put(tlv_message.hex_data)
 
@@ -123,5 +129,4 @@ class ReadDataThread(threading.Thread):
 
 
 			except Exception as e:
-				print(e)
 				print('ERROR: An error occured while dealing with received data.')

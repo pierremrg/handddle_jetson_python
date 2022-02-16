@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en-us">
+<head>
+    <title>Handddle Smart Farm Status</title>
+    <style>
+        *{
+            font-family: 'Consolas', 'Deja Vu Sans Mono', 'Bitstream Vera Sans Mono', monospace;
+        }
+
+        table{
+            border-collapse: collapse;
+            margin: 30px 0;
+        }
+
+        th, td{
+            border:1px solid lightgray;
+            padding: 5px 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Handddle Smart Farm status</h1>
+    <h3>Check date: {{ check_date }}</h3>
+
+    <hr>
+
+    <table>
+        <tr>
+            <th colspan="3">Handddle App connection</th>
+        </tr>
+        <tr>
+            <th>Host</th>
+            <th>Last check date</th>
+            <th>Status</th>
+        </tr>
+        <tr>
+            <td>{{ app_host }}</td>
+            <td>{{ app_check_date }}</td>
+            <td>{{ app_status }}</td>
+        </tr>
+    </table>
+
+    <table>
+        <tr>
+            <th colspan="5">Connected devices</th>
+        </tr>
+        <tr>
+            <th>UID</th>
+            <th>System code</th>
+            <th>Port</th>
+            <th>Last message date</th>
+            <th>Status</th>
+        </tr>
+        {% for device in devices %}
+            <tr>
+                <td>{{ device.uid }}</td>
+                <td>{{ device.system_code }}</td>
+                <td>{{ device.port }}</td>
+                <td>{{ device.check_date }}</td>
+                <td>{{ device.status }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

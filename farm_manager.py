@@ -13,6 +13,7 @@ from queue import Queue
 from threads.read_data_thread import ReadDataThread
 from threads.send_commands_thread import SendCommandsThread
 from threads.watchdog_thread import WatchdogThread
+from threads.gui_thread import GUIThread
 
 class FarmManager:
 
@@ -41,11 +42,21 @@ class FarmManager:
 		# Command transfer
 		self.transfer_queue = Queue(maxsize=100)
 
+		# Status
+		self.status_dict = {}
+
 		# Multithreading
-		self.readDataThread = ReadDataThread(self.se, self.api_server_config, self.uids, self.transfer_queue, self.debug)
+		self.readDataThread = ReadDataThread(self.se, self.api_server_config, self.uids, self.transfer_queue, self.status_dict, self.debug)
 		self.sendCommandsThread = SendCommandsThread(self.se, self.api_server_config, self.uids, self.transfer_queue, self.debug)
 		self.watchdogThread = WatchdogThread(self.watchdog_interval, self.transfer_queue, self.debug)
+		self.guiThread = GUIThread(self.uids, self.api_server_config, self.status_dict, self.debug)
 
+		self.threads = [
+			self.readDataThread,
+			self.sendCommandsThread,
+			self.watchdogThread,
+			self.guiThread
+		]
 
 	def loadConfiguration(self):
 		with open(self.config_filepath, 'r') as config_file:
@@ -109,13 +120,11 @@ class FarmManager:
 
 	def startProcesses(self):
 
-		self.readDataThread.start()
-		self.sendCommandsThread.start()
-		self.watchdogThread.start()
+		for thread in self.threads:
+			thread.start()
 
-		self.readDataThread.join()
-		self.sendCommandsThread.join()
-		self.watchdogThread.join()
+		for thread in self.threads:
+			thread.join()
 
 
 if __name__ == '__main__':
@@ -126,7 +135,7 @@ if __name__ == '__main__':
 		farmManager = FarmManager('config.yaml')
 		farmManager.startProcesses()
 
-	except e:
+	except Exception as e:
 		print('Error:', e)
 
 	finally:

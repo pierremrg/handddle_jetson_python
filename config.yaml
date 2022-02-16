@@ -9,8 +9,8 @@ uids:
 watchdog_interval: 9 # Seconds
 
 api_server:
-  protocol: http
-  host: localhost/handddle_app_back
+  protocol: https
+  host: beta.handddle.com
   licence_key: HANDDDLE
 
 debug: false
