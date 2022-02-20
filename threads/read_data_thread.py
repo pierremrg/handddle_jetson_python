@@ -34,6 +34,8 @@ class ReadDataThread(threading.Thread):
 			try:
 
 				time.sleep(1)
+				has_data_to_send = False
+				data_to_send = {}
 
 				for port_name in self.se:
 
@@ -50,10 +52,10 @@ class ReadDataThread(threading.Thread):
 						has_data = True
 
 					if self.debug:
-						# raw_received_data = input('Enter a valid hex message received from the STM32: ')
+						raw_received_data = input('Enter a valid hex message received from the STM32: ')
 
 						# Example test messages
-						raw_received_data = ''
+						# raw_received_data = ''
 						# raw_received_data = '01010010C0C0C0C002010001AA00000000000000FF' # Main / Temp
 						# raw_received_data = '01010010C0C0C0C002010001AA00000000000000FF' # Main / Hum
 						# raw_received_data = '01010010C0C0C0C002010001AA02020002FEFE00FF' # Main / Temp + Hum
@@ -86,14 +88,16 @@ class ReadDataThread(threading.Thread):
 									raise Exception('Unknown UID ({}).'.format(tlv_message.uid))
 
 								# Manage received data
-								data_to_send = {} # Data to send for one specific system code
-								has_data_to_send = False
 								for tlv_data in tlv_message.payload:
 									message = tlv_data.payload
 
 									if type(message) is MainMessage:
 										has_data_to_send = True
-										data_to_send[message.data.getKey()] = message.data.getValue()
+
+										if system_code not in data_to_send:
+											data_to_send[system_code] = {}
+										data_to_send[system_code][message.data.getKey()] = message.data.getValue()
+
 										print('<<< Message received on port ' + port_name + ': ' + str(message))
 
 										self.status_dict[tlv_message.uid] = {
@@ -103,20 +107,6 @@ class ReadDataThread(threading.Thread):
 									if type(message) is CommandMessage:
 										self.transfer_queue.put(tlv_message.hex_data)
 
-								# Actually send data
-								if has_data_to_send:
-									self.api_server_config['session'].post(
-										url=self.api_server_config['protocol'] + '://' + self.api_server_config['host'] + '/public/api/farm_datas',
-										headers={
-											'Content-type': 'application/json'
-										},
-										data=json.dumps({
-											'system_code': system_code,
-											'measure_date': int(time.time()),
-											'data': data_to_send
-										}),
-										timeout=10
-									)
 
 							except requests.exceptions.ConnectionError as e:
 								print('The application is not connected to internet. No data sent.')
@@ -127,6 +117,23 @@ class ReadDataThread(threading.Thread):
 							except Exception as e:
 								print('Error with a message received on port {}: {} (Raw message: {})'.format(port_name, e, chunk.hex()))
 
+				# Actually send all data using one unique request
+				if has_data_to_send:
+					body = [
+						{
+							'system_code': system_code,
+							'measure_date': int(time.time()),
+							'data': data
+						}
+						for system_code, data in data_to_send.items()
+					]
+
+					self.api_server_config['session'].post(
+						url=self.api_server_config['protocol'] + '://' + self.api_server_config['host'] + '/public/api/farm_datas',
+						headers={'Content-type': 'application/json'},
+						data=json.dumps(body),
+						timeout=10
+					)
 
 			except Exception as e:
 				print('ERROR: An error occured while dealing with received data.')
