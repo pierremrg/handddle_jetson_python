@@ -36,19 +36,11 @@ class CommandMessage(Message):
 
 	COMMAND_TYPES = {
 		0: {'name': 'ack', 'values': [0, 1]},
-		1: {'name': 'on_off', 'values': [0, 1]},
-		2: {'name': 'door_closed', 'values': [0, 1]},
-		3: {'name': 'forcing_door', 'values': [1]},
-		4: {'name': 'temperature', 'values': [t for t in range(100+1)]},
-		5: {'name': 'led_color', 'values': [0, 1, 2, 3, 4, 5, 6, 7, 8]},
-		6: {'name': 'printing_state', 'values': [0, 1, 2, 3, 4, 5, 6, 7]},
-		7: {'name': 'air_extraction', 'values': [e for e in range(100+1)]},
-		8: {'name': 'relay_off', 'values': [0, 1]},
-		9: {'name': 'tare', 'values': [1]},
-		10: {'name': 'get_weight', 'values': [1]},
-		11: {'name': 'update_watchdog', 'values': [1]},
-		12: {'name': 'force_reset', 'values': [1]},
-		13: {'name': 'buzzer', 'values': [0,1]}
+		1: {'name': 'update_watchdog', 'values': [1]},
+		2: {'name': 'force_reset', 'values': [1]},
+		3: {'name': 'air_extraction', 'values': [a for a in range(100+1)]},
+		4: {'name': 'temperature', 'values': [b for b in range(100+1)]},
+		5:{'name': 'led_color', 'values': [c for c in range(6+1)]}
 	}
 
 	def __init__(self, subtype, content):
@@ -74,6 +66,7 @@ class CommandMessage(Message):
 class MainMessage(Message):
 
 	DATA_TYPES = {
+		0: {'name': 'led_color', 'class': 'default_data_persister'},
 		1: {'name': 'temperature', 'class': 'temperature_data_persister'},
 		2: {'name': 'humidity', 'class': 'default_data_persister'},
 		3: {'name': 'temperature_humidity', 'class': 'default_data_persister'}, # Unused
@@ -82,7 +75,6 @@ class MainMessage(Message):
 		6: {'name': 'door_closed', 'class': 'door_closed_data_persister'},
 		7: {'name': 'pollution', 'class': 'default_data_persister'}, # Unused
 		8: {'name': 'sound', 'class': 'default_data_persister'}, # Unused
-		9: {'name': 'led_color', 'class': 'default_data_persister'},
 		10: {'name': 'printing_state', 'class': 'default_data_persister'}, # Unused
 		11: {'name': 'latch_status', 'class': 'default_data_persister'}, # Unused
 		12: {'name': 'weight', 'class': 'default_data_persister'},
@@ -117,14 +109,7 @@ class MainMessage(Message):
 class SecondaryMessage(Message):
 
 	DATA_TYPES = {
-		1: 'tachy_extraction',
-		2: 'tachy_heating',
-		3: 'rack_temperature',
-		4: 'heating_temperature',
-		5: 'pressure',
-		6: 'relay_state',
-		7: 'buzzer_state',
-        8: 'preheat_over'
+		0: 'tachy_extraction'
 	}
 
 	def __init__(self, subtype, content):

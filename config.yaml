@@ -1,12 +1,13 @@
 serial:
-  baudrate: 9600
+  baudrate: 115200
   ports_prefix: /dev/ttyACM
 
 uids:
-  C0C0C0C0: T-01
+  C1000001: T-01
+  C2000001: R-01
   CFFFFFFF: broadcast
 
-watchdog_interval: 9 # Seconds
+watchdog_interval: 5 # Seconds
 
 api_server:
   protocol: https
