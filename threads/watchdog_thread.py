@@ -8,13 +8,19 @@ from messages.tlv_message import TLVMessage
 #######################
 
 class WatchdogThread(threading.Thread):
-	def __init__(self, interval, transfer_queue, debug):
+	def __init__(self, interval, transfer_queue, uids, debug):
 		threading.Thread.__init__(self)
 		self.transfer_queue = transfer_queue
+		self.uids = uids
 		self.debug = debug
 
 		self.interval = interval
 		self.count = 0
+
+		self.broadcast_uid = 'CFFFFFFF'
+		for uid, system_code in self.uids.items():
+			if system_code == 'broadcast':
+				self.broadcast_uid = uid
 
 	def run(self):
 

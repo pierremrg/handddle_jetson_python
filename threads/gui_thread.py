@@ -13,11 +13,12 @@ from messages.tlv_message import TLVMessage
 ##################
 
 class GUIThread(threading.Thread):
-	def __init__(self, uids, api_server_config, status_dict, debug):
+	def __init__(self, uids, api_server_config, status_dict, transfer_queue, debug):
 		threading.Thread.__init__(self)
 		self.uids = uids
 		self.api_server_config = api_server_config
 		self.status_dict = status_dict
+		self.transfer_queue = transfer_queue
 		self.debug = debug
 
 	def run(self):
@@ -70,5 +71,19 @@ class GUIThread(threading.Thread):
 				app_status='OK' if r.status_code == 200 else 'Error',
 				devices=devices
 			)
+
+		@app.route('/open_doors')
+		def open_doors():
+			broadcast_uid = 'CFFFFFFF'
+			for uid, system_code in self.uids.items():
+				if system_code == 'broadcast':
+					broadcast_uid = uid
+
+			message, hexa = TLVMessage.createTLVCommandFromJson(
+				broadcast_uid, 'door_closed', 0
+			)
+			self.transfer_queue.put(message)
+
+			return {'success': True}
 
 		app.run(host='127.0.0.1', port=8080)

@@ -50,9 +50,9 @@ class FarmManager:
 		# Multithreading
 		self.readDataThread = ReadDataThread(self.se, self.api_server_config, self.uids, self.transfer_queue, self.status_dict, self.debug)
 		self.sendCommandsThread = SendCommandsThread(self.se, self.api_server_config, self.uids, self.transfer_queue, self.debug)
-		self.watchdogThread = WatchdogThread(self.watchdog_interval, self.transfer_queue, self.debug)
+		self.watchdogThread = WatchdogThread(self.watchdog_interval, self.transfer_queue, self.uids, self.debug)
 		self.scannerThread = ScannerThread(self.scanner_config, self.api_server_config, self.debug)
-		self.guiThread = GUIThread(self.uids, self.api_server_config, self.status_dict, self.debug)
+		self.guiThread = GUIThread(self.uids, self.api_server_config, self.status_dict, self.transfer_queue, self.debug)
 
 		self.threads = [
 			self.readDataThread,

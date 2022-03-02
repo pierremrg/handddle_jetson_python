@@ -18,4 +18,4 @@ scanner:
   serial_base: 0x18502
   baudrate: 9600
 
-debug: true
+debug: false

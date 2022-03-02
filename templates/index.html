@@ -16,6 +16,10 @@
             border:1px solid lightgray;
             padding: 5px 10px;
         }
+
+        button{
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -61,5 +65,29 @@
             </tr>
         {% endfor %}
     </table>
+
+    <hr>
+
+    <button id="btn-open-doors">Open all doors</button>
+
+    <script>
+        document.getElementById('btn-open-doors').onclick = () => {
+            fetch('/open_doors')
+                .then(response => {
+                    if(response.ok){
+                        response.json().then(response => {
+                            if(response.success)
+                                alert('All doors are open.');
+                            else
+                                alert('Something went wrong.');
+                        });
+                    }
+                })
+                .catch(error => {
+                    alert('Something went wrong.');
+                    console.log(error);
+                });
+        }
+    </script>
 </body>
 </html>
