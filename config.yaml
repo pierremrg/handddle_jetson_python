@@ -4,6 +4,7 @@ serial:
 
 uids:
   C0C0C0C0: T-01
+  C0C0C0C1: T-02
   CFFFFFFF: broadcast
 
 watchdog_interval: 9 # Seconds
@@ -13,4 +14,8 @@ api_server:
   host: beta.handddle.com
   licence_key: HANDDDLE
 
-debug: false
+scanner:
+  serial_base: 0x18502
+  baudrate: 9600
+
+debug: true

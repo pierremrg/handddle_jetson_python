@@ -13,6 +13,7 @@ from queue import Queue
 from threads.read_data_thread import ReadDataThread
 from threads.send_commands_thread import SendCommandsThread
 from threads.watchdog_thread import WatchdogThread
+from threads.scanner_thread import ScannerThread
 from threads.gui_thread import GUIThread
 
 class FarmManager:
@@ -29,6 +30,7 @@ class FarmManager:
 		self.serial_ports_prefix = None
 
 		self.uids = {}
+		self.scanner_config = None
 		self.watchdog_interval = None
 
 		self.debug = False
@@ -49,12 +51,14 @@ class FarmManager:
 		self.readDataThread = ReadDataThread(self.se, self.api_server_config, self.uids, self.transfer_queue, self.status_dict, self.debug)
 		self.sendCommandsThread = SendCommandsThread(self.se, self.api_server_config, self.uids, self.transfer_queue, self.debug)
 		self.watchdogThread = WatchdogThread(self.watchdog_interval, self.transfer_queue, self.debug)
+		self.scannerThread = ScannerThread(self.scanner_config, self.api_server_config, self.debug)
 		self.guiThread = GUIThread(self.uids, self.api_server_config, self.status_dict, self.debug)
 
 		self.threads = [
 			self.readDataThread,
 			self.sendCommandsThread,
 			self.watchdogThread,
+			self.scannerThread,
 			self.guiThread
 		]
 
@@ -73,6 +77,8 @@ class FarmManager:
 		self.serial_ports_prefix = self.config['serial']['ports_prefix']
 
 		self.uids = self.config['uids']
+
+		self.scanner_config = self.config['scanner']
 
 		self.watchdog_interval = self.config['watchdog_interval']
 
