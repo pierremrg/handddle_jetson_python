@@ -94,6 +94,15 @@ class ReadDataThread(threading.Thread):
 									if type(message) is MainMessage:
 										has_data_to_send = True
 
+										# Shift system code if needed
+										if 'shift' in MainMessage.DATA_TYPES[message.subtype]:
+											shift = MainMessage.DATA_TYPES[message.subtype]['shift']
+
+											if shift == 1:
+												system_code = system_code.replace('R', 'B').replace('T', 'R')
+											elif shift == -1:
+												system_code = system_code.replace('R', 'T').replace('B', 'R')
+
 										if system_code not in data_to_send:
 											data_to_send[system_code] = {}
 										data_to_send[system_code][message.data.getKey()] = message.data.getValue()
