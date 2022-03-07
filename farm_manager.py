@@ -92,8 +92,15 @@ class FarmManager:
 			ports = list(port_list.comports())
 
 			self.se = {}
-			for p in ports:
-				port_full_name = p[0]
+			for port_full_name, description, hwid in ports:
+				# Do not use the scanner
+				hwid = hwid.split()
+				
+				if len(hwid) > 2:
+					usb_serial_number = int(hwid[2].strip('SER='), 16)
+
+					if usb_serial_number == self.scanner_config['serial_base']:
+						continue
 
 				if port_full_name.startswith(self.serial_ports_prefix):
 					self.se[port_full_name] = serial.Serial()
