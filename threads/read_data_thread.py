@@ -59,6 +59,7 @@ class ReadDataThread(threading.Thread):
 						# raw_received_data = '01010010C0C0C0C002010001AA00000000000000FF' # Main / Temp
 						# raw_received_data = '01010010C0C0C0C002010001AA00000000000000FF' # Main / Hum
 						# raw_received_data = '01010010C0C0C0C002010001AA02020002FEFE00FF' # Main / Temp + Hum
+						# raw_received_data = '01010010C0C0C0C0020C000200FF000000000000FF' # Weight
 						# raw_received_data = '01010010C0C0C0C0000500010102020002FEFE00FF' # Internal
 						# raw_received_data = '01010010C0C0C0C0010400010400000000000000FF' # Command
 						# raw_received_data = '01010010C0C0C0C0030300021001050200010000FF' # Other
@@ -131,7 +132,7 @@ class ReadDataThread(threading.Thread):
 					body = [
 						{
 							'system_code': system_code,
-							'measure_date': int(time.time()),
+							'measure_date': int(time.time()) * 1000, # in milliseconds
 							'data': data
 						}
 						for system_code, data in data_to_send.items()
