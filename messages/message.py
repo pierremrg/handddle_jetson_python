@@ -89,11 +89,11 @@ class MainMessage(Message):
 		13: {'name': 'pm1', 'class': 'default_data_persister'},
 		14: {'name': 'pm25', 'class': 'default_data_persister'},
 		15: {'name': 'pm10', 'class': 'default_data_persister'},
-		16: {'name': 'CO2', 'class': 'default_data_persister'}, # Unused
-		17: {'name': 'TVOC', 'class': 'default_data_persister'}, # Unused
-		18: {'name': 'TVOC_Warning', 'class': 'default_data_persister'}, # Unused
-		19: {'name': 'CO2_warning', 'class': 'default_data_persister'}, # Unused
-		20: {'name': 'Typology', 'class': 'default_data_persister'} # Unused
+		16: {'name': 'co2', 'class': 'default_data_persister'}, # Unused
+		17: {'name': 'tvoc', 'class': 'default_data_persister'}, # Unused
+		18: {'name': 'tvoc_warning', 'class': 'default_data_persister'}, # Unused
+		19: {'name': 'co2_warning', 'class': 'default_data_persister'}, # Unused
+		20: {'name': 'typology', 'class': 'default_data_persister'} # Unused
 	}
 
 	def __init__(self, subtype, content):
