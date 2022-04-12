@@ -15,6 +15,7 @@ from threads.send_commands_thread import SendCommandsThread
 from threads.watchdog_thread import WatchdogThread
 from threads.scanner_thread import ScannerThread
 from threads.gui_thread import GUIThread
+from threads.demo_thread import DemoThread
 
 class FarmManager:
 
@@ -34,6 +35,7 @@ class FarmManager:
 		self.watchdog_interval = None
 
 		self.debug = False
+		self.demo = False
 
 		self.loadConfiguration()
 
@@ -62,11 +64,16 @@ class FarmManager:
 			self.guiThread
 		]
 
+		if self.demo:
+			self.demoThread = DemoThread(self.transfer_queue, self.uids, self.debug)
+			self.threads.append(self.demoThread)
+
 	def loadConfiguration(self):
 		with open(self.config_filepath, 'r') as config_file:
 			self.config = yaml.load(config_file, Loader=yaml.FullLoader)
 
 		self.debug = self.config['debug']
+		self.demo = self.config['demo']
 
 		self.api_server_config = self.config['api_server']
 		# Create a unique server session for the whole app

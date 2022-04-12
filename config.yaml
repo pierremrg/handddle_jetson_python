@@ -19,3 +19,5 @@ scanner:
   baudrate: 9600
 
 debug: false
+
+demo: false
