@@ -32,16 +32,31 @@ class DemoThread(threading.Thread):
 
 	def run_demo(self):
 
-		message, hexa = TLVMessage.createTLVCommandFromJson(
-			self.broadcast_uid, 'led_color', 2
-		)
+		message, hexa = TLVMessage.createTLVCommandFromJson(self.broadcast_uid, 'led_color', 7)
 		self.transfer_queue.put(message)
 
 		time.sleep(30)
 
-		message, hexa = TLVMessage.createTLVCommandFromJson(
-			self.broadcast_uid, 'led_color', 5
-		)
+		message, hexa = TLVMessage.createTLVCommandFromJson(self.broadcast_uid, 'led_color', 2)
+		self.transfer_queue.put(message)
+		message, hexa = TLVMessage.createTLVCommandFromJson(self.broadcast_uid, 'temperature', 40)
 		self.transfer_queue.put(message)
 
 		time.sleep(30)
+
+		message, hexa = TLVMessage.createTLVCommandFromJson(self.broadcast_uid, 'led_color', 4)
+		self.transfer_queue.put(message)
+		message, hexa = TLVMessage.createTLVCommandFromJson(self.broadcast_uid, 'air_extraction', 100)
+		self.transfer_queue.put(message)
+
+		time.sleep(30)
+
+		message, hexa = TLVMessage.createTLVCommandFromJson(self.broadcast_uid, 'led_color', 3)
+		self.transfer_queue.put(message)
+
+		time.sleep(30)
+
+		message, hexa = TLVMessage.createTLVCommandFromJson(self.broadcast_uid, 'led_color', 5)
+		self.transfer_queue.put(message)
+
+		time.sleep(60)
