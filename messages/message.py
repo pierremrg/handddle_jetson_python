@@ -48,7 +48,8 @@ class CommandMessage(Message):
 		10: {'name': 'get_weight', 'values': [1]},
 		11: {'name': 'update_watchdog', 'values': [1]},
 		12: {'name': 'force_reset', 'values': [1]},
-		13: {'name': 'buzzer', 'values': [0,1]}
+		13: {'name': 'buzzer', 'values': [0,1]},
+		14: {'name': 'dehumidifier_on', 'values': [0,1]}
 	}
 
 	def __init__(self, subtype, content):
