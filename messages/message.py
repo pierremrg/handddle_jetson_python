@@ -93,7 +93,8 @@ class MainMessage(Message):
 		17: {'name': 'tvoc', 'class': 'default_data_persister'}, # Unused
 		18: {'name': 'tvoc_warning', 'class': 'default_data_persister'}, # Unused
 		19: {'name': 'co2_warning', 'class': 'default_data_persister'}, # Unused
-		20: {'name': 'typology', 'class': 'default_data_persister'} # Unused
+		20: {'name': 'typology', 'class': 'default_data_persister'}, # Unused
+		21: {'name': 'relay_state_dehumidifier', 'class': 'default_data_persister'}, # Unused
 	}
 
 	def __init__(self, subtype, content):
