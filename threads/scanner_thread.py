@@ -28,7 +28,7 @@ class ScannerThread(threading.Thread):
 			try:
 				hwid = hwid.split()
 
-				if len(hwid) > 2:
+				if len(hwid) > 2 and hwid[2].startswith('SER='):
 					usb_serial_number = int(hwid[2].strip('SER='), 16)
 
 					if usb_serial_number == self.scanner_serial_base:
