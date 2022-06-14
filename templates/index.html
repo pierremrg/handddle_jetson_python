@@ -54,6 +54,10 @@
             <th>Port</th>
             <th>Last message date</th>
             <th>Status</th>
+            {% if display_data %}
+                <th>Temperature</th>
+                <th>Humidity</th>
+            {% endif %}
         </tr>
         {% for device in devices %}
             <tr>
@@ -62,6 +66,10 @@
                 <td>{{ device.port }}</td>
                 <td>{{ device.check_date }}</td>
                 <td>{{ device.status }}</td>
+                {% if display_data %}
+                    <td>{{ device.last_data['temperature'] if 'temperature' in device.last_data else '-' }}</td>
+                    <td>{{ device.last_data['humidity'] if 'humidity' in device.last_data else '-' }}</td>
+                {% endif %}
             </tr>
         {% endfor %}
     </table>

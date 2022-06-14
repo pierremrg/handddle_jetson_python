@@ -15,13 +15,14 @@ from messages.message import *
 ######################
 
 class ReadDataThread(threading.Thread):
-	def __init__(self, se, api_server_config, uids, transfer_queue, status_dict, debug):
+	def __init__(self, se, api_server_config, uids, transfer_queue, status_dict, last_data, debug):
 		threading.Thread.__init__(self)
 		self.se = se
 		self.api_server_config = api_server_config
 		self.uids = uids
 		self.transfer_queue = transfer_queue
 		self.status_dict = status_dict
+		self.last_data = last_data
 		self.debug = debug
 
 	def run(self):
@@ -33,7 +34,7 @@ class ReadDataThread(threading.Thread):
 
 			try:
 
-				time.sleep(1)
+				time.sleep(2)
 				has_data_to_send = False
 				data_to_send = {}
 
@@ -113,6 +114,11 @@ class ReadDataThread(threading.Thread):
 										self.status_dict[tlv_message.uid] = {
 											'system_code': system_code, 'check_date': datetime.now(), 'port': port_name
 										}
+
+										# Save last data
+										if system_code not in self.last_data:
+											self.last_data[system_code] = {}
+										self.last_data[system_code][message.data.getKey()] = message.data.getValue()
 
 									if type(message) is CommandMessage:
 										self.transfer_queue.put(tlv_message.hex_data)

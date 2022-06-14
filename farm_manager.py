@@ -36,6 +36,7 @@ class FarmManager:
 
 		self.debug = False
 		self.demo = False
+		self.display_data = False
 
 		self.loadConfiguration()
 
@@ -46,15 +47,16 @@ class FarmManager:
 		# Command transfer
 		self.transfer_queue = Queue(maxsize=100)
 
-		# Status
+		# Status & last data
 		self.status_dict = {}
+		self.last_data = {}
 
 		# Multithreading
-		self.readDataThread = ReadDataThread(self.se, self.api_server_config, self.uids, self.transfer_queue, self.status_dict, self.debug)
+		self.readDataThread = ReadDataThread(self.se, self.api_server_config, self.uids, self.transfer_queue, self.status_dict, self.last_data, self.debug)
 		self.sendCommandsThread = SendCommandsThread(self.se, self.api_server_config, self.uids, self.transfer_queue, self.debug)
 		self.watchdogThread = WatchdogThread(self.watchdog_interval, self.transfer_queue, self.uids, self.debug)
 		self.scannerThread = ScannerThread(self.scanner_config, self.api_server_config, self.debug)
-		self.guiThread = GUIThread(self.uids, self.api_server_config, self.status_dict, self.transfer_queue, self.debug)
+		self.guiThread = GUIThread(self.uids, self.api_server_config, self.status_dict, self.last_data, self.display_data, self.transfer_queue, self.debug)
 
 		self.threads = [
 			self.readDataThread,
@@ -74,6 +76,7 @@ class FarmManager:
 
 		self.debug = self.config['debug']
 		self.demo = self.config['demo']
+		self.display_data = self.config['display_data']
 
 		self.api_server_config = self.config['api_server']
 		# Create a unique server session for the whole app

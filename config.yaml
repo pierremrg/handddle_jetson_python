@@ -21,3 +21,5 @@ scanner:
 debug: false
 
 demo: false
+
+display_data: true

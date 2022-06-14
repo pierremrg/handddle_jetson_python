@@ -13,11 +13,13 @@ from messages.tlv_message import TLVMessage
 ##################
 
 class GUIThread(threading.Thread):
-	def __init__(self, uids, api_server_config, status_dict, transfer_queue, debug):
+	def __init__(self, uids, api_server_config, status_dict, last_data, display_data, transfer_queue, debug):
 		threading.Thread.__init__(self)
 		self.uids = uids
 		self.api_server_config = api_server_config
 		self.status_dict = status_dict
+		self.last_data = last_data
+		self.display_data = display_data
 		self.transfer_queue = transfer_queue
 		self.debug = debug
 
@@ -41,7 +43,8 @@ class GUIThread(threading.Thread):
 					'system_code': device['system_code'],
 					'port': device['port'],
 					'check_date': device['check_date'].strftime("%d/%m/%Y %H:%M:%S"),
-					'status': 'OK' if time.time() - device['check_date'].timestamp() < 30 else 'Error'
+					'status': 'OK' if time.time() - device['check_date'].timestamp() < 30 else 'Error',
+					'last_data': self.last_data[device['system_code']] if device['system_code'] in self.last_data else {}
 				})
 
 			for uid, system_code in self.uids.items():
@@ -51,7 +54,8 @@ class GUIThread(threading.Thread):
 						'system_code': system_code,
 						'port': 'Not detected',
 						'check_date': '-',
-						'status': 'Error'
+						'status': 'Error',
+						'last_data': {}
 					})
 
 			r = self.api_server_config['session'].get(
@@ -69,7 +73,8 @@ class GUIThread(threading.Thread):
 				app_host=self.api_server_config['host'],
 				app_check_date=datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
 				app_status='OK' if r.status_code == 200 else 'Error',
-				devices=devices
+				devices=devices,
+				display_data=self.display_data
 			)
 
 		@app.route('/open_doors')
