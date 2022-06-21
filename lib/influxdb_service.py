@@ -23,11 +23,11 @@ class InfluxdbService:
             for key, value in data.items():
                 point.field(key, value)
                 # mock data in debug mode
-                if self.debug:
-                    if key == "temperature":
-                        point.field(key, random.uniform(26, 27) // 0.01 / 100)
-                    elif key == "humidity":
-                        point.field(key, int(random.uniform(30, 35)))
+                # if self.debug:
+                #     if key == "temperature":
+                #         point.field(key, random.uniform(26, 27) // 0.01 / 100)
+                #     elif key == "humidity":
+                #         point.field(key, int(random.uniform(30, 35)))
             points.append(point)
         # send request to influxdb
         write_api.write(bucket=self.influxdb_config['bucket'], record=points)

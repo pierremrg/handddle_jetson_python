@@ -25,7 +25,7 @@ class ReadDataThread(threading.Thread):
 		self.transfer_queue = transfer_queue
 		self.status_dict = status_dict
 		self.debug = debug
-		self.InfluxdbService = InfluxdbService(influxdb_config, debug)
+		self.influxdb_service = InfluxdbService(influxdb_config, debug)
 
 	def run(self):
 
@@ -132,7 +132,7 @@ class ReadDataThread(threading.Thread):
 
 				# Send all data to influxdb
 				if has_data_to_send:
-					self.InfluxdbService.writeDataBySystemCode(data_to_send)
+					self.influxdb_service.writeDataBySystemCode(data_to_send)
 
 			except Exception as e:
 				print('ERROR: An error occured while dealing with received data.')
