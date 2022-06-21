@@ -5,6 +5,7 @@ import json
 import random
 import requests
 from datetime import datetime
+from lib.influxdb_service import InfluxdbService
 
 from messages.tlv_message import TLVMessage
 from messages.tlv_data import TLVData
@@ -15,15 +16,17 @@ from messages.message import *
 ######################
 
 class ReadDataThread(threading.Thread):
-	def __init__(self, se, api_server_config, uids, transfer_queue, status_dict, last_data, debug):
+	def __init__(self, se, api_server_config, influxdb_config, uids, transfer_queue, status_dict, last_data, debug):
 		threading.Thread.__init__(self)
 		self.se = se
 		self.api_server_config = api_server_config
+		self.influxdb_config = influxdb_config
 		self.uids = uids
 		self.transfer_queue = transfer_queue
 		self.status_dict = status_dict
 		self.last_data = last_data
 		self.debug = debug
+		self.influxdb_service = InfluxdbService(influxdb_config, debug)
 
 	def run(self):
 
@@ -133,23 +136,10 @@ class ReadDataThread(threading.Thread):
 							except Exception as e:
 								print('Error with a message received on port {}: {} (Raw message: {})'.format(port_name, e, chunk.hex()))
 
-				# Actually send all data using one unique request
+				# Send all data to influxdb
 				if has_data_to_send:
-					body = [
-						{
-							'system_code': system_code,
-							'measure_date': int(time.time()) * 1000, # in milliseconds
-							'data': data
-						}
-						for system_code, data in data_to_send.items()
-					]
-
-					self.api_server_config['session'].post(
-						url=self.api_server_config['protocol'] + '://' + self.api_server_config['host'] + '/public/api/farm_datas',
-						headers={'Content-type': 'application/json'},
-						data=json.dumps(body),
-						timeout=10
-					)
+					self.influxdb_service.writeDataBySystemCode(data_to_send)
 
 			except Exception as e:
 				print('ERROR: An error occured while dealing with received data.')
+				print(str(e))

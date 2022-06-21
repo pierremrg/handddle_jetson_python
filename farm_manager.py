@@ -26,6 +26,7 @@ class FarmManager:
 		self.config = None
 
 		self.api_server_config = None
+		self.influxdb_config = None
 
 		self.serial_baudrate = None
 		self.serial_ports_prefix = None
@@ -52,7 +53,7 @@ class FarmManager:
 		self.last_data = {}
 
 		# Multithreading
-		self.readDataThread = ReadDataThread(self.se, self.api_server_config, self.uids, self.transfer_queue, self.status_dict, self.last_data, self.debug)
+		self.readDataThread = ReadDataThread(self.se, self.api_server_config, self.influxdb_config, self.uids, self.transfer_queue, self.status_dict, self.last_data, self.debug)
 		self.sendCommandsThread = SendCommandsThread(self.se, self.api_server_config, self.uids, self.transfer_queue, self.debug)
 		self.watchdogThread = WatchdogThread(self.watchdog_interval, self.transfer_queue, self.uids, self.debug)
 		self.scannerThread = ScannerThread(self.scanner_config, self.api_server_config, self.debug)
@@ -81,6 +82,8 @@ class FarmManager:
 		self.api_server_config = self.config['api_server']
 		# Create a unique server session for the whole app
 		self.api_server_config['session'] = requests.Session()
+
+		self.influxdb_config = self.config['influxdb']
 
 		# STM communication
 		self.serial_baudrate = self.config['serial']['baudrate']

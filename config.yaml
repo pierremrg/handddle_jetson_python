@@ -14,6 +14,13 @@ api_server:
   host: beta.handddle.com
   licence_key: HANDDDLE
 
+influxdb:
+  protocol: https
+  host: data.beta.handddle.com
+  org: handddle
+  token: 5GEStuLlJu6-GqL3nDDxknaVTHOiB24xa2GlS5-7yswL2EtPOmhlBmldLLRohNBIoeM9FQ8-rHCKrxj3iZONgQ==
+  bucket: farm_data
+
 scanner:
   serial_base: 0x18502
   baudrate: 9600
