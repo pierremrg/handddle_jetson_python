@@ -45,7 +45,7 @@ class ReadDataThread(threading.Thread):
 
 	def run(self):
 
-		file_logger('Started ReadDataThread')
+		file_logger.info('Started ReadDataThread')
 		time.sleep(0.5)
 
 		while True:  # Infinite loop
