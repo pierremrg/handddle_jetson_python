@@ -11,6 +11,21 @@ from messages.tlv_message import TLVMessage
 from messages.tlv_data import TLVData
 from messages.message import *
 
+import logging
+from logging.handlers import TimedRotatingFileHandler
+
+LOG_FILE = "/var/log/handddle_python_logging/datas/datas.log"
+FORMATTER = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s: %(message)s")
+
+file_logger = logging.getLogger('datas')
+file_logger.setLevel(logging.DEBUG)
+
+file_handler = TimedRotatingFileHandler(LOG_FILE, when="midnight", interval=1, backupCount=7)
+file_handler.setFormatter(FORMATTER)
+
+file_logger.addHandler(file_handler)
+file_logger.propagate = False
+
 ######################
 # Read received data #
 ######################
@@ -30,7 +45,7 @@ class ReadDataThread(threading.Thread):
 
 	def run(self):
 
-		print('Started ReadDataThread')
+		file_logger('Started ReadDataThread')
 		time.sleep(0.5)
 
 		while True:  # Infinite loop
@@ -112,7 +127,7 @@ class ReadDataThread(threading.Thread):
 											data_to_send[system_code] = {}
 										data_to_send[system_code][message.data.getKey()] = message.data.getValue()
 
-										print('<<< Message received on port ' + port_name + ': ' + str(message))
+										file_logger.info('<<< Message received on port ' + port_name + ': ' + str(message))
 
 										self.status_dict[tlv_message.uid] = {
 											'system_code': system_code, 'check_date': datetime.now(), 'port': port_name
@@ -128,18 +143,18 @@ class ReadDataThread(threading.Thread):
 
 
 							except requests.exceptions.ConnectionError as e:
-								print('The application is not connected to internet. No data sent.')
+								file_logger.error('The application is not connected to internet. No data sent.')
 
 							except requests.exceptions.ReadTimeout as e:
-								print('The application could not reach the web server. No data sent.\nDetails:', e)
+								file_logger.error('The application could not reach the web server. No data sent.\nDetails:', e)
 
 							except Exception as e:
-								print('Error with a message received on port {}: {} (Raw message: {})'.format(port_name, e, chunk.hex()))
+								file_logger.error('Error with a message received on port {}: {} (Raw message: {})'.format(port_name, e, chunk.hex()))
 
 				# Send all data to influxdb
 				if has_data_to_send:
 					self.influxdb_service.writeDataBySystemCode(data_to_send)
 
 			except Exception as e:
-				print('ERROR: An error occured while dealing with received data.')
-				print(str(e))
+				file_logger.error('ERROR: An error occured while dealing with received data.')
+				file_logger.error(str(e))

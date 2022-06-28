@@ -11,6 +11,21 @@ import requests
 from messages.tlv_message import TLVMessage
 from messages.tlv_data import TLVData
 
+import logging
+from logging.handlers import TimedRotatingFileHandler
+
+LOG_FILE = "/var/log/handddle_python_logging/commands/commands.log"
+FORMATTER = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s: %(message)s")
+
+file_logger = logging.getLogger('commands')
+file_logger.setLevel(logging.DEBUG)
+
+file_handler = TimedRotatingFileHandler(LOG_FILE, when="midnight", interval=1, backupCount=7)
+file_handler.setFormatter(FORMATTER)
+
+file_logger.addHandler(file_handler)
+file_logger.propagate = False
+
 ################################
 # Read received commands files #
 ################################
@@ -30,7 +45,7 @@ class SendCommandsThread(threading.Thread):
 
 	def run(self):
 
-		print('Started SendCommandsThread')
+		file_logger.info('Started SendCommandsThread')
 
 		while True:  # Infinite loop
 			try:
@@ -63,13 +78,13 @@ class SendCommandsThread(threading.Thread):
 									self.messages_to_send.append(message)
 
 									# Test - Uncomment this line to check if the message is well formated
-									# print(TLVMessage(io.BytesIO(message)))
+									# file_logger.info(TLVMessage(io.BytesIO(message)))
 
 						else:
 							raise Exception('Unknown system code ({}).'.format(command['system_code']))
 
 					except Exception as e:
-						print('Error:', e)
+						file_logger.error('Error:', e)
 
 				# Add transfered commands
 				while not self.transfer_queue.empty():
@@ -80,14 +95,14 @@ class SendCommandsThread(threading.Thread):
 
 			except requests.exceptions.ConnectionError as e:
 				self.is_connected = False
-				print('The application is not connected to internet. Retrying...')
+				file_logger.error('The application is not connected to internet. Retrying...')
 
 			except requests.exceptions.ReadTimeout as e:
 				self.is_connected = False
-				print('The application could not reach the web server. Retrying...\nDetails:', e)
+				file_logger.error('The application could not reach the web server. Retrying...\nDetails:', e)
 
 			except Exception as e:
-				print('ERROR: An error occured while sending commands.')
+				file_logger.error('ERROR: An error occured while sending commands.')
 
 
 	def sendMessages(self):
@@ -102,4 +117,4 @@ class SendCommandsThread(threading.Thread):
 						self.se[port_name].write(message[i:i + 1])
 						time.sleep(0.001)
 
-			print('>>> Sent command: {:040x}'.format(int.from_bytes(message, byteorder='big')))
+			file_logger.info('>>> Sent command: {:040x}'.format(int.from_bytes(message, byteorder='big')))

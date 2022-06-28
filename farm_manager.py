@@ -17,6 +17,21 @@ from threads.scanner_thread import ScannerThread
 from threads.gui_thread import GUIThread
 from threads.demo_thread import DemoThread
 
+import logging
+from logging.handlers import TimedRotatingFileHandler
+
+LOG_FILE = "/var/log/handddle_python_logging/farm_manager/farm_manager.log"
+FORMATTER = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s: %(message)s")
+
+file_logger = logging.getLogger('farm_manager')
+file_logger.setLevel(logging.DEBUG)
+
+file_handler = TimedRotatingFileHandler(LOG_FILE, when="midnight", interval=1, backupCount=7)
+file_handler.setFormatter(FORMATTER)
+
+file_logger.addHandler(file_handler)
+file_logger.propagate = False
+
 class FarmManager:
 
 	def __init__(self, config_filepath):
@@ -97,8 +112,8 @@ class FarmManager:
 
 
 	def loadUSBPorts(self):
-		print('------------------------------')
-		print('Ports initilization:')
+		file_logger.info('------------------------------')
+		file_logger.info('Ports initilization:')
 
 		if not self.debug:
 
@@ -125,14 +140,14 @@ class FarmManager:
 					self.se[port_full_name].flushInput()
 					self.se[port_full_name].flushOutput()
 
-					print('\t- Port {} initialized.'.format(port_full_name))
+					file_logger.info('\t- Port {} initialized.'.format(port_full_name))
 
 		else:
 			self.se['P0'] = None
-			print('\t- Port P0 initialized [DEBUG].')
+			file_logger.debug('\t- Port P0 initialized [DEBUG].')
 
-		print('{} port(s) initialized.'.format(len(self.se)))
-		print('------------------------------')
+		file_logger.info('{} port(s) initialized.'.format(len(self.se)))
+		file_logger.info('------------------------------')
 
 
 	def closePorts(self):
@@ -141,7 +156,7 @@ class FarmManager:
 				try:
 					self.se[port_name].close()
 				except Exception as e:
-					print('Cannot close port {}: {}'.format(port_name, e))
+					file_logger.error('Cannot close port {}: {}'.format(port_name, e))
 
 
 	def startProcesses(self):
@@ -162,7 +177,7 @@ if __name__ == '__main__':
 		farmManager.startProcesses()
 
 	except Exception as e:
-		print('Error:', e)
+		file_logger.error('Error:', e)
 
 	finally:
 		if farmManager is not None:
